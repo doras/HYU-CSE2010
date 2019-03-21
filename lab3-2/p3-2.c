@@ -26,7 +26,8 @@ void enQ(FILE *output, Queue *que, int value)
 		fprintf(output, "Full\n");
 		return;
 	}
-	que->arr[++que->rear] = value;
+	que->rear = (que->rear+1) % 100;
+	que->arr[que->rear] = value;
 	++que->size;
 	return;
 }
@@ -38,7 +39,8 @@ void deQ(FILE *output, Queue *que)
 		fprintf(output, "Empty\n");
 		return;
 	}
-	fprintf(output, "%d\n", que->arr[que->front++]);
+	fprintf(output, "%d\n", que->arr[que->front]);
+	que->front = (que->front+1) % 100;
 	--que->size;
 	return;
 }
