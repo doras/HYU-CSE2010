@@ -7,6 +7,7 @@ typedef struct{
 	int top;
 }Stack;
 
+//빈 Stack을 동적할당 후 해당 주소를 return
 Stack* makeStack()
 {
 	Stack *temp = (Stack*)malloc(sizeof(Stack));
