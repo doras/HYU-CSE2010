@@ -62,6 +62,9 @@ int main()
 		else if(strcmp(mode,"pop") == 0){
 			pop(output, stack);
 		}
+		else{
+			continue;
+		}
 	}
 	fclose(input);
 	fclose(output);
