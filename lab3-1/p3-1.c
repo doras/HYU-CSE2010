@@ -49,12 +49,13 @@ int main()
 	FILE *input = fopen("input3-1.txt","r"), *output = fopen("output.txt", "w");
 	int num, temp;
 	char mode[5];
+	int i;
 
 	fscanf(input, "%d", &num);
 
 	Stack *stack = makeStack();
 	
-	for(int i = 0; i < num; ++i){
+	for(i = 0; i < num; ++i){
 		fscanf(input, "%s", mode);
 		if(strcmp(mode,"push") == 0){
 			fscanf(input, "%d", &temp);
