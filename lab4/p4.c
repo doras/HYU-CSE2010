@@ -224,10 +224,11 @@ int main(){
     char data_temp[2];
     char *data_arr;
     TreeNode *root;
+    int i;
 
     fscanf(input, "%d", &num);
     data_arr = (char*)malloc(sizeof(char)*num);
-    for(size_t i = 0; i < num; i++) {
+    for(i = 0; i < num; i++) {
         fscanf(input, "%s", data_temp);
         data_arr[i] = data_temp[0];
     }

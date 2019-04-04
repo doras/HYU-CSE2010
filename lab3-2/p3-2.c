@@ -57,12 +57,13 @@ int main()
 	int num, temp;
 	char mode[4];
 	Queue *que;
+	int i;
 
 	fscanf(input,"%d",&num);
 
 	que = makeQ();
 	
-	for(int i = 0; i < num; ++i){
+	for(i = 0; i < num; ++i){
 		fscanf(input, "%s", mode);
 		if(strcmp(mode, "enQ") == 0){
 			fscanf(input, "%d", &temp);
