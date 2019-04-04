@@ -20,7 +20,7 @@ jobs:
 
               for files in *.c; do
                 gcc -o ${files%.c}.out $files;
-                #./${files%.c}.out
+                ./${files%.c}.out
                 if [[ -e output.txt ]]; then
                   cat output.txt
                 fi;
