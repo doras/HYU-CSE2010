@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define MAX(a,b) (a>b?a:b)
+#define DEBUG printf("Line: %d", __LINE__);
 
 typedef struct _AVLNode {
     int elem;
@@ -67,6 +68,7 @@ AVLNode* double_rotate_with_right(AVLNode* k1)
 // 만약 이미 있는 값이면 message를 출력하고 insert는 진행되지 않음.
 AVLNode* insert(int value, AVLNode* root, FILE* output)
 {
+DEBUG
     successful_insertion = 1;
     if(root == NULL) {
         root = (AVLNode*)malloc(sizeof(AVLNode));
@@ -108,6 +110,13 @@ void PrintInorder(AVLNode* root, FILE* output) {
     PrintInorder(root->right, output);
 }
 
+void DeleteTree(AVLNode* root) {
+    if (root == NULL) return;
+    DeleteTree(root->left);
+    DeleteTree(root->right);
+    free(root);
+}
+
 int main()
 {
     FILE *input = fopen("input.txt", "r");
@@ -115,7 +124,9 @@ int main()
     int temp_value;
     AVLNode* root;
     while(fscanf(input, "%d", &temp_value) == 1) {
+DEBUG
         root = insert(temp_value, root, output);
+DEBUG
         if(successful_insertion)
         {
             PrintInorder(root, output);
