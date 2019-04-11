@@ -20,9 +20,12 @@ jobs:
 
               for files in *.c; do
                 gcc -o ${files%.c}.out $files;
+                echo ===========$'\n'$files compile is done$'\n'===========
                 ./${files%.c}.out
+                echo ===========$'\n'executed ${files%.c}.out$'\n'===========
                 if [[ -e output.txt ]]; then
                   cat output.txt
+                  echo ===========$'\n'this is output.txt$'\n'===========
                 fi;
               done;
 
