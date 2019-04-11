@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define MAX(a,b) (a>b?a:b)
-#define DEBUG printf("Line: %d", __LINE__);
+#define DEBUG printf("Line: %d\n", __LINE__);
 
 typedef struct _AVLNode {
     int elem;
