@@ -120,7 +120,7 @@ void DeleteTree(AVLNode* root) {
 int main()
 {
     FILE *input = fopen("input.txt", "r");
-    FILE *output = fopen("output.txt", "w");
+    FILE *output = stdout;
     int temp_value;
     AVLNode* root = NULL;
     while(fscanf(input, "%d", &temp_value) == 1) {
@@ -133,4 +133,9 @@ DEBUG
             fprintf(output, "\n");
         }
     }
+
+    DeleteTree(root);
+    fclose(input);
+    fclose(output);
+    return 0;
 }
