@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX(a,b) (a>b?a:b)
-
 typedef struct _AVLNode {
     int elem;
     struct _AVLNode *left;
     struct _AVLNode *right;
     int height;
 } AVLNode;
+
+int max(int a, int b)
+{
+    return (a>b)?a:b;
+}
 
 short successful_insertion = 1;
 
@@ -27,8 +30,8 @@ AVLNode* single_rotate_with_left(AVLNode* k2)
     k2->left = k1->right;
     k1->right = k2;
 
-    k2->height = MAX(height(k2->left), height(k2->right)) + 1;
-    k1->height = MAX(height(k1->left), height(k2)) + 1;
+    k2->height = max(height(k2->left), height(k2->right)) + 1;
+    k1->height = max(height(k1->left), height(k2)) + 1;
     return k1;
 }
 
@@ -40,8 +43,8 @@ AVLNode* single_rotate_with_right(AVLNode* k1)
     k1->right = k2->left;
     k2->left = k1;
 
-    k1->height = MAX(height(k1->left), height(k1->right)) + 1;
-    k2->height = MAX(height(k2->right), height(k1)) + 1;
+    k1->height = max(height(k1->left), height(k1->right)) + 1;
+    k2->height = max(height(k2->right), height(k1)) + 1;
     return k2;
 }
 
@@ -96,7 +99,7 @@ AVLNode* insert(int value, AVLNode* root, FILE* output)
         fprintf(output, "%d already in the tree!\n", value);
         successful_insertion = 0;
     }
-    root->height = MAX(height(root->right), height(root->left)) + 1;
+    root->height = max(height(root->right), height(root->left)) + 1;
     return root;
 }
 
