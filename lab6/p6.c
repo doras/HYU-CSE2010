@@ -8,6 +8,7 @@ typedef struct _AVLNode {
     int height;
 } AVLNode;
 
+//a와 b 중에 더 큰 값을 return
 int max(int a, int b)
 {
     return (a>b)?a:b;
@@ -111,6 +112,7 @@ void PrintInorder(AVLNode* root, FILE* output) {
     PrintInorder(root->right, output);
 }
 
+// 인자로 받은 tree의 모든 node를 free
 void DeleteTree(AVLNode* root) {
     if (root == NULL) return;
     DeleteTree(root->left);
