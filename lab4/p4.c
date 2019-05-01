@@ -18,6 +18,12 @@ typedef struct{
     QueueNode *tail;
 } Queue;
 
+void push_stack(TreeNode* value, TreeNode** stack, int *top);
+TreeNode* pop_stack(TreeNode** stack, int *top);
+void iter_inorder(TreeNode* root);
+void iter_levelorder(TreeNode* root);
+void iter_preorder(TreeNode*);
+
 //빈 queue를 만들어서 return
 Queue* makeQ(){
     Queue *temp = (Queue*)malloc(sizeof(Queue));
@@ -243,4 +249,63 @@ int main(){
     fclose(output);
     free(data_arr);
     return 0;
+}
+
+void push_stack(TreeNode* value, TreeNode** stack, int *top)
+{
+    stack[++*top] = value;
+}
+
+TreeNode* pop_stack(TreeNode** stack, int *top)
+{
+    if(*top < 0) return NULL;
+    return stack[(*top)--];
+}
+
+void iter_inorder(TreeNode* root)
+{
+    TreeNode* stack[20];
+    int top = -1;
+    TreeNode* temp = root->left_child;
+    while(1) {
+        for(;temp;temp = temp->left_child) {
+            push_stack(temp, stack, &top);
+        }
+        temp = pop_stack(stack, &top);
+        if(!temp) break;
+        printf("%c ", temp->data);
+        temp = temp->right_child;
+    }
+}
+
+void iter_levelorder(TreeNode* root)
+{
+    Queue* q = makeQ();
+    TreeNode* temp = root->left_child;
+    enQ(q,temp);
+    while(1) {
+        temp = deQ(q);
+        if(!temp) break;
+        printf("%c ", temp->data);
+        if(temp->left_child)
+            enQ(q, temp->left_child);
+        if(temp->right_child)
+            enQ(q, temp->right_child);
+    }
+}
+
+void iter_preorder(TreeNode* root)
+{
+    TreeNode* stack[20];
+    int top = -1;
+    TreeNode* temp = root->left_child;
+    while(1) {
+        for(;temp;temp = temp->left_child) {
+            printf("%c ", temp->data);
+            push_stack(temp, stack, &top);
+        }
+        temp = pop_stack(stack, &top);
+        if(!temp) break;
+        temp = temp->right_child;
+    }
 }
