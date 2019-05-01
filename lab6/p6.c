@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define DEBUG(x) printf("line:%d, code:%d\n", __LINE__, x);
+
 typedef struct _AVLNode {
     int elem;
     struct _AVLNode *left;
@@ -120,6 +122,56 @@ void DeleteTree(AVLNode* root) {
     free(root);
 }
 
+AVLNode* delete(int value, AVLNode* T)
+{
+    AVLNode* temp;
+    if(T == NULL) {
+        printf("%d doesn't exist.\n", value);
+    } else if(value > T->elem) {
+        T->right = delete(value, T->right);
+        if(height(T->left) - height(T->right) == 2) {
+            if(height(T->left->left) >= height(T->left->right))
+                T = single_rotate_with_left(T);
+            else
+                T = double_rotate_with_left(T);
+        }
+    } else if(value < T->elem) {
+        T->left = delete(value, T->left);
+        if(height(T->right) - height(T->left) == 2) {
+            if(height(T->right->right) >= height(T->right->left))
+                T = single_rotate_with_right(T);
+            else 
+                T = double_rotate_with_right(T);
+        }
+    } else {
+        if(T->left && T->right) {
+            temp = T->left;
+            while(temp->right) temp = temp->right;
+            T->elem = temp->elem;
+            T->left = delete(temp->elem, T->left);
+            if(height(T->right) - height(T->left) == 2) {
+                if(height(T->right->right) > height(T->right->left))
+                    T = single_rotate_with_right(T);
+                else 
+                    T = double_rotate_with_right(T);
+            }
+        } else {
+            if(T->right == NULL) {
+                temp = T;
+                T = temp->left;
+                free(temp);
+            } else {
+                temp = T;
+                T = temp->right;
+                free(temp);
+            }
+        }
+    }
+    if(T != NULL)
+        T->height = max(height(T->left), height(T->right)) + 1;
+    return T;
+}
+
 int main()
 {
     FILE *input = fopen("input.txt", "r");
@@ -134,6 +186,14 @@ int main()
             fprintf(output, "\n");
         }
     }
+
+/*
+    while(scanf("%d", &temp_value) == 1) {
+        root = delete(temp_value, root);
+        PrintInorder(root, output);
+        printf("\n");
+    }
+*/
 
     DeleteTree(root);
     fclose(input);
