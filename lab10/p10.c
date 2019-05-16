@@ -59,7 +59,7 @@ int main()
     
     int i;
     top_sorted_arr = top_sort(graph);
-    fprintf(output, "TopSort Result : ");
+    fprintf(output, "TopSort Result :");
     for(i = 0; i < graph->size; ++i) fprintf(output, " %d", top_sorted_arr[i]);
     fprintf(output, "\n");
     free(top_sorted_arr);
