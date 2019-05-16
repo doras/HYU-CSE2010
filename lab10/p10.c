@@ -28,6 +28,7 @@ int find_index_of_key(int* keys, int len, int value);
 int* bubble_sorted_order(int* arr, int len);
 void swap(int* lhs, int* rhs);
 void print_matrix(FILE* output, Graph* graph);
+void delete_graph(Graph* graph);
 
 int main()
 {
@@ -60,14 +61,17 @@ int main()
     top_sorted_arr = top_sort(graph);
     fprintf(output, "TopSort Result : ");
     for(i = 0; i < graph->size; ++i) fprintf(output, " %d", top_sorted_arr[i]);
+    fprintf(output, "\n");
     free(top_sorted_arr);
+
+    delete_graph(graph);
 
     fclose(input);
     fclose(output);
     return 0;
 }
 
-//
+// arguemt로 받은 len 길이의 int 배열 nodes에 저장되어 있는 vertex를 갖는 graph를 dynamic하게 create함.
 Graph* create_graph(int* nodes, int len)
 {
     Graph* result = malloc(sizeof(Graph));
@@ -88,13 +92,14 @@ Graph* create_graph(int* nodes, int len)
     return result;
 }
 
-//
+// graph에 vertex a에서 b로의 edge를 추가해줌.
 void insert_edge(Graph* graph, int a, int b)
 {
     graph->matrix[find_index_of_key(graph->node, graph->size, a)][find_index_of_key(graph->node, graph->size, b)] = 1;
 }
 
-//
+// topological sort를 수행하여 결과가 담겨있는 int array를 return함.
+// dynamic allocation된 array를 return.
 int* top_sort(Graph* graph)
 {
     int i, j, now_idx, temp, count = 0;
@@ -132,7 +137,7 @@ int* top_sort(Graph* graph)
     return result_arr;
 }
 
-//
+// x만큼의 max_size를 가지는 queue를 동적으로 생성하여 주소를 반환함.
 Queue* make_new_queue(int x)
 {
     Queue* result = malloc(sizeof(Queue));
@@ -144,7 +149,7 @@ Queue* make_new_queue(int x)
     return result;
 }
 
-//
+// argument로 받은 Queue에 x값을 enqueue함.
 void enqueue(Queue* q, int x)
 {
     if(q->qsize == q->max_queue_size) {
@@ -155,7 +160,7 @@ void enqueue(Queue* q, int x)
     ++q->qsize;
 }
 
-//
+// argument로 받은 Queue에서 dequeue한 결과를 return함.
 int dequeue(Queue* q)
 {
     if(q->qsize == 0) return -1;
@@ -166,14 +171,15 @@ int dequeue(Queue* q)
     return result;
 }
 
-//
+// argument로 받은 Queue를 free함.
 void delete_queue(Queue* q)
 {
     free(q->key);
     free(q);
 }
 
-//
+// argument로 받은 int array keys에서 value에 해당하는 값을 찾아 해당 index를 return함.
+// 만약 없으면 -1 return.
 int find_index_of_key(int* keys, int len, int value)
 {
     int i;
@@ -183,7 +189,8 @@ int find_index_of_key(int* keys, int len, int value)
     return -1;
 }
 
-//
+// bubble sort 방식으로 int 배열 arr의 값들을 sorting된 순서로 접근할 수 있는 index의 array를 return함.
+// This function returns dynamically allocated array.
 int* bubble_sorted_order(int* arr, int len)
 {
     int i, j;
@@ -207,7 +214,7 @@ int* bubble_sorted_order(int* arr, int len)
     return result;
 }
 
-//
+// lhs가 pointing하는 값과 rhs가 pointing하는 값을 서로 바꿈.
 void swap(int* lhs, int* rhs)
 {
     int temp;
@@ -216,7 +223,7 @@ void swap(int* lhs, int* rhs)
     *rhs = temp;
 }
 
-//
+// graph의 matrix를 과제설명서의 예시와 같은 format으로 출력함.
 void print_matrix(FILE* output, Graph* graph)
 {
     int i, j;
@@ -230,4 +237,16 @@ void print_matrix(FILE* output, Graph* graph)
             fprintf(output, " %d", graph->matrix[i][j]);
         }
     }
+}
+
+// graph를 free함.
+void delete_graph(Graph* graph)
+{
+    int i;
+    for(i = 0; i < graph->size; ++i) {
+        free(graph->matrix[i]);
+    }
+    free(graph->matrix);
+    free(graph->node);
+    free(graph);
 }
