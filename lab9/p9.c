@@ -39,7 +39,7 @@ void swap(int*,int*);
 
 int main()
 {
-    FILE *input = fopen("input.txt", "r");
+    FILE *input = stdin;//fopen("input.txt", "r");
     FILE *output = fopen("output.txt", "w");
 
     char mode[2];
@@ -156,8 +156,7 @@ struct return_package insert(B_node *root, int key)
             result.overflowed_child = NULL;
             return result;
         } else {
-            insert_key(root->key, i, key, ORDER-1);
-            ++root->n_keys;
+            insert_key(root->key, i, key, root->n_keys++);
             result.is_overflow = 0;
             return result;
         }
