@@ -360,9 +360,11 @@ B_node* insert_to_B_tree(B_node* root, int key)
     struct return_package total_result = insert(root, key);
 
     if(!total_result.is_overflow) return root;
-
+DEBUG(10)
     B_node* new_root = make_empty_B_tree();
+DEBUG(11)
     B_node* new_right_subtree = node_copy(root, total_result.overflowed_key, total_result.overflowed_child);
+DEBUG(12)
     new_root->child[0] = root;
     new_root->child[1] = new_right_subtree;
     new_root->key[new_root->n_keys++] = root->key[--root->n_keys];
