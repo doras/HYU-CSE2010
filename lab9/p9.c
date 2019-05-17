@@ -4,8 +4,6 @@
 
 #define ORDER 3
 
-#define DEBUG(x) printf("line : %d, code : %d\n", __LINE__, x);
-
 typedef struct _B_node {
     int n_keys;
     struct _B_node *child[ORDER];
@@ -39,25 +37,20 @@ void swap(int*,int*);
 
 int main()
 {
-    FILE *input = stdin;//fopen("input.txt", "r");
+    FILE *input = fopen("input.txt", "r");
     FILE *output = fopen("output.txt", "w");
 
     char mode[2];
     int tmp_num;
-DEBUG(0)
     B_node *root = make_empty_B_tree();
-DEBUG(1)
     while(fscanf(input, "%s", mode) == 1) {
         if(mode[0] == 'i') {
             fscanf(input, "%d", &tmp_num);
-DEBUG(tmp_num)
             root = insert_to_B_tree(root, tmp_num);
-DEBUG(2)
         } else if(mode[0] == 'p') {
             inorder(root, output);
         }
     }
-DEBUG(3)
     free_B_tree(root);
 
     fclose(input);
@@ -69,13 +62,9 @@ DEBUG(3)
 B_node* make_empty_B_tree()
 {
     int i;
-DEBUG(0)
     B_node* temp = malloc(sizeof(B_node));
-DEBUG(temp)
     temp->n_keys = 0;
-DEBUG(temp)
     for(i = 0; i < ORDER; ++i) {
-DEBUG(i)
         temp->child[i] = NULL;
     }
     return temp;
@@ -363,11 +352,8 @@ B_node* insert_to_B_tree(B_node* root, int key)
     struct return_package total_result = insert(root, key);
 
     if(!total_result.is_overflow) return root;
-DEBUG(10)
     B_node* new_root = make_empty_B_tree();
-DEBUG(11)
     B_node* new_right_subtree = node_copy(root, total_result.overflowed_key, total_result.overflowed_child);
-DEBUG(12)
     new_root->child[0] = root;
     new_root->child[1] = new_right_subtree;
     new_root->key[new_root->n_keys++] = root->key[--root->n_keys];
