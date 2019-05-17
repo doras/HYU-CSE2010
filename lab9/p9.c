@@ -69,9 +69,13 @@ DEBUG(3)
 B_node* make_empty_B_tree()
 {
     int i;
+DEBUG(0)
     B_node* temp = malloc(sizeof(B_node));
+DEBUG(temp)
     temp->n_keys = 0;
+DEBUG(temp)
     for(i = 0; i < ORDER; ++i) {
+DEBUG(i)
         temp->child[i] = NULL;
     }
     return temp;
