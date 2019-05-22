@@ -60,9 +60,13 @@ int main()
     int i;
     top_sorted_arr = top_sort(graph);
     fprintf(output, "TopSort Result :");
-    for(i = 0; i < graph->size; ++i) fprintf(output, " %d", top_sorted_arr[i]);
+    if(top_sorted_arr) {
+        for(i = 0; i < graph->size; ++i) fprintf(output, " %d", top_sorted_arr[i]);
+        free(top_sorted_arr);
+    } else {
+        fprintf(output, " input graph is DAG.");
+    }
     fprintf(output, "\n");
-    free(top_sorted_arr);
 
     delete_graph(graph);
 
@@ -129,6 +133,14 @@ int* top_sort(Graph* graph)
             }
         }
         ++count;
+    }
+
+    for(i = 0; i < graph->size; ++i) {
+        if(indegree[i] != 0) {
+            free(result_arr);
+            result_arr = NULL;
+            break;
+        }
     }
 
     delete_queue(queue);
