@@ -5,18 +5,25 @@ typedef struct {
     int cap;
     int size;
     int *arr;
+    int (*cmp_func)(int,int);
 } Heap;
 
-Heap* make_heap(int);
-Heap* build_heap(int*, int, int(*)(int,int));
-void insert(FILE*, int, Heap*, int(*)(int,int));
+Heap* make_heap(int, int(*)(int,int));
+Heap* build_heap(const int*, int, int(*)(int,int));
 void find_with_io(FILE*, int, Heap*);
 int find(int, Heap*);
+void insert(FILE*, int, Heap*);
+void delete(Heap*);
+int front(Heap*);
 void print(FILE*, Heap*);
 void delete_heap(Heap*);
 int max(int, int);
 int min(int, int);
-void back_propagate(Heap*, int, int(*)(int,int));
+void perc_up(Heap*, int);
+void perc_down(Heap*, int);
+void swap(int*, int*);
+void heap_sort(int*, int);
+int is_empty(Heap*);
 
 int main()
 {
@@ -29,17 +36,24 @@ int main()
     int temp_num;
 
     fscanf(input, "%d", &cap);
-    pq = make_heap(cap);
+    pq = make_heap(cap, max);
 
     while(fscanf(input, "%s", mode) == 1) {
         switch(mode[0]) {
             case 'i':
                 fscanf(input, "%d", &temp_num);
-                insert(output, temp_num, pq, max);
+                insert(output, temp_num, pq);
                 break;
             case 'f':
                 fscanf(input, "%d", &temp_num);
                 find_with_io(output, temp_num, pq);
+                break;
+            case 't':
+                if(is_empty(pq)) fprintf(output, "heap is empty.\n");
+                else fprintf(output, "top of heap is : %d\n", front(pq));
+                break;
+            case 'd':
+                delete(pq);
                 break;
             case 'p':
                 print(output, pq);
@@ -54,53 +68,42 @@ int main()
 }
 
 // 주어진만큼의 capacity를 가지는 heap을 할당한 후 그 주소를 return.
-Heap* make_heap(int cap)
+Heap* make_heap(int cap, int (*cmp_func)(int,int))
 {
     Heap *pq = malloc(sizeof(Heap));
     pq->cap = cap;
     pq->size = 0;
-    pq->arr = malloc(sizeof(int) * cap);
+    pq->arr = malloc(sizeof(int) * (cap + 1));
+    pq->cmp_func = cmp_func;
     return pq;
 }
 
 // heap에 data로 넣고 싶은 int 배열과 그 길이를 argument로 받아서
 // heap을 할당하고 그 주소값을 return함.
-Heap* build_heap(int *data_arr, int len, int(*cmp_func)(int,int))
+Heap* build_heap(const int* data_arr, int len, int(*cmp_func)(int,int))
 {
-    Heap *pq;
+    if(data_arr == NULL) return make_heap(len, cmp_func);
+
     int i, j;
     int temp, value;
-    pq = malloc(sizeof(Heap));
-    if(data_arr == NULL) {
-        pq->cap = 10;
-        pq->size = 0;
-        pq->arr = malloc(sizeof(int) * pq->cap + 1);    
-        return pq;
-    }
-    pq->cap = (len + len * 0.25) > 10 ? (len + len * 0.25) : 10;
+    Heap *pq = malloc(sizeof(Heap));
+
+    pq->cap = len;
     pq->size = len;
-    pq->arr = malloc(sizeof(int) * pq->cap + 1);
+    pq->arr = malloc(sizeof(int) * (len + 1));
+    pq->cmp_func = cmp_func;
     for(i = 0; i < len; ++i) {
         pq->arr[i+1] = data_arr[i];
     }
+
     for(i = len / 2; i >= 1; --i) {
-        value = pq->arr[i];
-        for(j = i; 2*j <= len; j = temp) {
-            temp = 2*j;
-            if(temp != len && cmp_func(pq->arr[temp], pq->arr[temp + 1]) < 0) {
-                ++temp;
-            }
-            if(cmp_func(pq->arr[j], pq->arr[temp]) >= 0) break;
-            pq->arr[j] = pq->arr[temp];
-            pq->arr[temp] = value;
-        }
-        pq->arr[j] = value;
+        perc_down(pq, i);
     }
     return pq;
 }
 
-// 주어진 value를 heap에 cmp_func의 관점에서 insert함.
-void insert(FILE *output, int value, Heap *pq, int(*cmp_func)(int,int))
+// 주어진 value를 heap에 insert함.
+void insert(FILE* output, int value, Heap* pq)
 {
     int idx = find(value, pq);
     if(idx) {
@@ -108,12 +111,12 @@ void insert(FILE *output, int value, Heap *pq, int(*cmp_func)(int,int))
         return;
     }
     pq->arr[++pq->size] = value;
-    back_propagate(pq, pq->size, cmp_func);
+    perc_up(pq, pq->size);
     fprintf(output, "insert %d\n", value);
 }
 
 // find함수를 이용해서 heap안에 value에 해당하는 값의 여부를 fprint한다.
-void find_with_io(FILE *output, int value, Heap *pq)
+void find_with_io(FILE* output, int value, Heap* pq)
 {
     if(find(value, pq)) {
         fprintf(output, "%d is in the heap.\n", value);
@@ -123,7 +126,7 @@ void find_with_io(FILE *output, int value, Heap *pq)
 }
 
 // Heap안에서 value값이 있는지 확인하고 있다면 그 index, 없다면 0을 return한다.
-int find(int value, Heap *pq)
+int find(int value, Heap* pq)
 {
     int i;
     for(i = 1; i <= pq->size; ++i) {
@@ -136,7 +139,7 @@ int find(int value, Heap *pq)
 }
 
 // argument로 받은 Heap의 data를 순서대로 출력함.
-void print(FILE* output, Heap *pq)
+void print(FILE* output, Heap* pq)
 {
     int i;
     for(i = 1; i <= pq->size; ++i) {
@@ -146,7 +149,7 @@ void print(FILE* output, Heap *pq)
 }
 
 // argument로 받은 heap의 arr과 heap자체를 free함.
-void delete_heap(Heap *pq)
+void delete_heap(Heap* pq)
 {
     if(pq == NULL) return;
     free(pq->arr);
@@ -165,13 +168,71 @@ int min(int parent, int child)
     return child - parent;
 }
 
-// 주어진 heap의 index를 바탕으로 cmp_func관점에서 percolate up한다.
-void back_propagate(Heap *pq, int idx, int(*cmp_func)(int,int))
+// 주어진 heap의 index를 바탕으로 percolate up한다.
+void perc_up(Heap* pq, int idx)
 {
     int i;
     int value = pq->arr[idx];
-    for(i = idx; i/2 && cmp_func(pq->arr[i/2], value) < 0; i /= 2) {
+    for(i = idx; i/2 && pq->cmp_func(pq->arr[i/2], value) < 0; i /= 2) {
         pq->arr[i] = pq->arr[i/2];
     }
     pq->arr[i] = value;
+}
+
+// percolating elements in given index until heap satisfing partial ordering
+void perc_down(Heap* pq, int index)
+{
+    int i;
+    int len = pq->size;
+    int temp;
+    int value = pq->arr[index];
+    for(i = index; 2*i <= len; i = temp) {
+        temp = 2*i;
+        if(temp != len && pq->cmp_func(pq->arr[temp], pq->arr[temp + 1]) < 0) {
+            ++temp;
+        }
+        if(pq->cmp_func(value, pq->arr[temp]) >= 0) break;
+        pq->arr[i] = pq->arr[temp];
+    }
+    pq->arr[i] = value;
+}
+
+// delete the root node of given heap
+void delete(Heap* pq)
+{
+    if(is_empty(pq)) return;
+    swap(&pq->arr[1], &pq->arr[pq->size--]);
+    perc_down(pq, 1);
+}
+
+// swap the values
+void swap(int* lhs, int* rhs)
+{
+    int temp = *lhs;
+    *lhs = *rhs;
+    *rhs = temp;
+}
+
+// return the key of root node of given heap
+int front(Heap* pq)
+{
+    return pq->arr[1];
+}
+
+// perform heap sort with Heap struct, build_heap and delete function.
+void heap_sort(int* arr, int len)
+{
+    Heap* pq = build_heap(arr, len, max);
+    int i;
+    for(i = len - 1; i >= 0; --i) {
+        arr[i] = front(pq);
+        delete(pq);
+    }
+    delete_heap(pq);
+}
+
+// If given heap is empty, return 1. Else return 0.
+int is_empty(Heap* pq)
+{
+    return pq->size <= 0;
 }
