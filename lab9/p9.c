@@ -21,7 +21,7 @@ struct return_package insert(B_node*,int);
 B_node* insert_to_B_tree(B_node*,int);
 void insert_key(int*,int,int,int);
 int rotation_test(B_node*,int);
-int get_smallest_key(int*,int);
+int get_smallest_key(int*,int,int);
 int get_largest_key(int*,int);
 B_node* push_front_subtree(B_node**,B_node*);
 B_node* push_back_subtree(B_node**,B_node*);
@@ -92,7 +92,7 @@ void rotate_with_left(B_node* root, int src, int difference, int value, B_node* 
 
     // subtree is rightmost subtree
     for(now_idx = src; now_idx != dst; --now_idx) {
-        value = get_smallest_key(root->child[now_idx]->key, value);
+        value = get_smallest_key(root->child[now_idx]->key, value, ORDER-1);
         swap(&value, &root->key[now_idx - 1]);
         subtree = push_back_subtree(root->child[now_idx]->child, subtree);
     }
@@ -153,8 +153,8 @@ struct return_package insert(B_node *root, int key)
 
     returned_by_child = insert(root->child[i], key);
     if(returned_by_child.is_overflow) {
-        // rotatable = rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
-        rotatable = 0;
+        rotatable = rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
+        // rotatable = 0;
 
         if(rotatable < 0) {
             rotate_with_left(root, i, -rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
@@ -213,13 +213,13 @@ int rotation_test(B_node* root, int src)
 
 // keys 배열이 꽉 차있는 상태라고 가정하고, value를 sorting된 자리에 삽입한 후
 // 가장 작은 key값을 return함. 나머지 key값들은 순서대로 배열에 남아있음.
-int get_smallest_key(int* keys, int value)
+int get_smallest_key(int* keys, int value, int len)
 {
     int i, j, result = keys[0];
 
     if(keys[0] > value) return value;
 
-    for(i = 0; keys[i] < value; ++i);
+    for(i = 0; i < len && keys[i] < value; ++i);
     for(j = 0; j < i - 1; ++j) {
         keys[j] = keys[j+1];
     }
@@ -369,5 +369,6 @@ void free_B_tree(B_node* root)
     for(i = 0; i <= root->n_keys; ++i) {
         free_B_tree(root->child[i]);
     }
+    // printf("%d\n", root->key[0]);
     free(root);
 }
