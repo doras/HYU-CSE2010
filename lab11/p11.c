@@ -29,6 +29,7 @@ Heap* build_heap(Node** data_arr, int len, int(*cmp_func)(Node*,Node*));
 void delete_heap(Heap* pq);
 int min(Node* left, Node* right);
 Node* front(Heap* pq);
+Node** dijkstra(int** adjacency, Node** nodes, int count, int src);
 
 int main()
 {
@@ -64,30 +65,16 @@ int main()
         adjacency[find_idx(nodes, count, src)][find_idx(nodes, count, dst)] = weight;
     }
 
-    nodes[find_idx(nodes, count, src)]->dist = 0;
+    Node** prev = dijkstra(adjacency, nodes, count, src);
     
-    Heap* heap = build_heap(nodes, count, min);
-    Node* now_node;
-    while(!is_empty(heap)) {
-        now_node = front(heap);
-        delete(heap);
-        if(now_node->dist == INT_MAX) break;
-        for(i = 0; i < count; ++i) {
-            if(adjacency[now_node->idx][i] < INT_MAX && nodes[i]->dist > now_node->dist + adjacency[now_node->idx][i]) {
-                nodes[i]->dist = now_node->dist + adjacency[now_node->idx][i];
-                nodes[i]->prev = now_node;
-                perc_up(heap, nodes[i]->heap_idx);
-            }
-        }
-    }
-
+    Node* now_node = nodes[find_idx(nodes, count, dst)];
     int* result = malloc(sizeof(int) * count);
-    now_node = nodes[find_idx(nodes, count, dst)];
     for(i = 0; i < count; ++i) {
         result[i] = now_node->key;
-        now_node = now_node->prev;
+        now_node = prev[now_node->idx];
         if(now_node == NULL) break;
     }
+
     if(result[i] != src) {
         fprintf(output, "no path\n");
     } else {
@@ -95,15 +82,14 @@ int main()
             fprintf(output, "%d ", result[i]);
         }
     }
-    free(result);
 
+    free(prev);
+    free(result);
     for(i = 0; i < count; ++i) {
         free(adjacency[i]);
         free_node(nodes[i]);
     }
     free(adjacency);
-
-    delete_heap(heap);
 
     fclose(output);
     fclose(input);
@@ -239,4 +225,34 @@ void delete_heap(Heap* pq)
     if(pq == NULL) return;
     free(pq->arr);
     free(pq);
+}
+
+// perform dijkstra with given adjacency matrix, vertax, src. and return Node* array
+Node** dijkstra(int** adjacency, Node** nodes, int count, int src)
+{
+    int i;
+    nodes[find_idx(nodes, count, src)]->dist = 0;
+    
+    Heap* heap = build_heap(nodes, count, min);
+    Node* now_node;
+    while(!is_empty(heap)) {
+        now_node = front(heap);
+        delete(heap);
+        if(now_node->dist == INT_MAX) break;
+        for(i = 0; i < count; ++i) {
+            if(adjacency[now_node->idx][i] < INT_MAX && nodes[i]->dist > now_node->dist + adjacency[now_node->idx][i]) {
+                nodes[i]->dist = now_node->dist + adjacency[now_node->idx][i];
+                nodes[i]->prev = now_node;
+                perc_up(heap, nodes[i]->heap_idx);
+            }
+        }
+    }
+
+    Node** result = malloc(sizeof(Node*) * count);
+    for(i = 0; i < count; ++i) {
+        result[i] = nodes[i]->prev;
+    }
+
+    delete_heap(heap);
+    return result;
 }
