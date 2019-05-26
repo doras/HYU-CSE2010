@@ -17,21 +17,30 @@ struct return_package {
 };
 
 B_node* make_empty_B_tree();
+void free_B_tree(B_node*);
+void free_B_node(B_node*);
 struct return_package insert(B_node*,int);
 B_node* insert_to_B_tree(B_node*,int);
+int delete(B_node* root, int value);
+B_node* delete_to_B_tree(B_node* root, int value);
 void insert_key(int*,int,int,int);
-int rotation_test(B_node*,int);
+int delete_key(int*,int,int);
 int get_smallest_key(int*,int,int);
 int get_largest_key(int*,int);
+B_node* insert_subtree(B_node**,B_node*,int,int);
+B_node* delete_subtree(B_node** arr, int index, int len);
 B_node* push_front_subtree(B_node**,B_node*);
 B_node* push_back_subtree(B_node**,B_node*);
-B_node* insert_subtree(B_node**,B_node*,int,int);
-void rotate_with_left(B_node*,int,int,int,B_node*);
-void rotate_with_right(B_node*,int,int,int,B_node*);
+int insert_rotation_test(B_node*,int);
+void insert_rotate_with_left(B_node*,int,int,int,B_node*);
+void insert_rotate_with_right(B_node*,int,int,int,B_node*);
+int delete_rotation_test(B_node* root, int src);
+void delete_rotate_with_right(B_node* root, int now_idx);
 struct return_package node_split(B_node*,int,int,B_node*);
 B_node* node_copy(B_node*,int,B_node*);
+void merge(B_node* root, int left_idx);
+int find_max(B_node*);
 void inorder(B_node*,FILE*);
-void free_B_tree(B_node*);
 void swap(int*,int*);
 
 
@@ -49,9 +58,15 @@ int main()
             root = insert_to_B_tree(root, tmp_num);
         } else if(mode[0] == 'p') {
             inorder(root, output);
+            fprintf(output, "\n");
+        } else if(mode[0] == 'd') {
+            fscanf(input, "%d", &tmp_num);
+            root = delete_to_B_tree(root, tmp_num);
+        } else {
+            break;
         }
     }
-    free_B_tree(root);
+    free_B_tree(root); //TODO
 
     fclose(input);
     fclose(output);
@@ -81,9 +96,10 @@ void insert_key(int* arr, int index, int value, int len)
     arr[index] = value;
 }
 
+// insert 전용 rotate에 대한 함수이다.
 // root의 child중 src위치에서 difference만큼 왼쪽으로 떨어져 있는 child로 rotate를 진행한다.
 // src와 dst 사이의 모든 sibling들은 key가 꽉 찬 상태임을 가정한다.
-void rotate_with_left(B_node* root, int src, int difference, int value, B_node* subtree)
+void insert_rotate_with_left(B_node* root, int src, int difference, int value, B_node* subtree)
 {
     int now_idx, i;
     int key_temp;
@@ -102,9 +118,11 @@ void rotate_with_left(B_node* root, int src, int difference, int value, B_node* 
     dst_node->child[dst_node->n_keys] = subtree;
 }
 
+
+// insert 전용 rotate에 대한 함수이다.
 // root의 child중 src위치에서 difference만큼 오른쪽으로 떨어져 있는 child로 rotate를 진행한다.
 // src와 dst 사이의 모든 sibling들은 key가 꽉 찬 상태임을 가정한다.
-void rotate_with_right(B_node* root, int src, int difference, int value, B_node* subtree)
+void insert_rotate_with_right(B_node* root, int src, int difference, int value, B_node* subtree)
 {
     int now_idx, i;
     int key_temp;
@@ -131,7 +149,7 @@ struct return_package insert(B_node *root, int key)
     struct return_package result, returned_by_child;
 
     for(i = 0; i < root->n_keys && root->key[i] < key; ++i);
-    if(root->key[i] == key) {
+    if(i < root->n_keys && root->key[i] == key) {
         result.is_overflow = 0;
         return result;
     }
@@ -153,19 +171,18 @@ struct return_package insert(B_node *root, int key)
 
     returned_by_child = insert(root->child[i], key);
     if(returned_by_child.is_overflow) {
-        rotatable = rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
-        // rotatable = 0;
+        // rotatable = insert_rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
+        rotatable = 0;
 
         if(rotatable < 0) {
-            rotate_with_left(root, i, -rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
+            insert_rotate_with_left(root, i, -rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
             result.is_overflow = 0;
             return result;
         } else if(rotatable > 0) {
-            rotate_with_right(root, i, rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
+            insert_rotate_with_right(root, i, rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
             result.is_overflow = 0;
             return result;
         }
-        //TODO: do node split
         return node_split(root, i, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
 
     } else { // overflow didn't occur.
@@ -181,16 +198,16 @@ void inorder(B_node* root, FILE* output)
     int i;
     for(i = 0; i < root->n_keys; ++i) {
         inorder(root->child[i], output);
-        fprintf(output, "%d ", root->key[i]);
+        fprintf(output, "%d(%d) ", root->key[i], i);
     }
     inorder(root->child[root->n_keys], output);
 }
 
-// root의 child들 중 src위치의 child에서 다른 sibling에 rotation을 할 수 있는지 검사한 후, can_rotate값을 return
+// root의 child들 중 src위치의 child에서 다른 sibling에 insert용 rotation을 할 수 있는지 검사한 후, can_rotate값을 return
 // if (can_rotate == 0) -> can't rotate
 // if (can_rotate < 0) -> can rotate with left side
 // if (can_rotate > 0) -> can rotate with right side
-int rotation_test(B_node* root, int src)
+int insert_rotation_test(B_node* root, int src)
 {
     int can_rotate = 0, dst;
 
@@ -371,4 +388,157 @@ void free_B_tree(B_node* root)
     }
     // printf("%d\n", root->key[0]);
     free(root);
+}
+
+// find max key value
+int find_max(B_node* root)
+{
+    while(root->child[0]) {
+        root = root->child[root->n_keys];
+    }
+    return root->key[root->n_keys - 1];
+}
+
+// delete the key that is given index-th key in given arr.
+// return deleted key value.
+int delete_key(int* arr, int index, int len)
+{
+    int i;
+    int result = arr[index];
+    for(i = index; i < len - 1; ++i) {
+        arr[i] = arr[i+1];
+    }
+    return result;
+}
+
+// delete the subtree that is given index-th subtree in given arr.
+// return deleted subtree value.
+B_node* delete_subtree(B_node** arr, int index, int len)
+{
+    int i;
+    B_node* result = arr[index];
+    for(i = index; i < len - 1; ++i) {
+        arr[i] = arr[i+1];
+    }
+    return result;
+}
+
+// test rotatable from root's src child to left or right sibling node
+/* return rotatable test result that
+    -1 : can rotate with a left sibling.
+    0 : can't rotate with any siblings.
+    +1 : can rotate with a right sibling.
+*/
+int delete_rotation_test(B_node* root, int src)
+{
+    int left = src - 1, right = src + 1;
+    if(left >= 0 && root->child[left]->n_keys > ceil(ORDER / 2.0) - 1) {
+        return -1;
+    } else if(right <= root->n_keys && root->child[right]->n_keys > ceil(ORDER / 2.0) - 1) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+// Function for rotate of delete.
+// Perform rotation with the closest left sibling.
+void delete_rotate_with_left(B_node* root, int now_idx)
+{
+    B_node* dst_node = root->child[now_idx - 1];
+    int key = dst_node->key[dst_node->n_keys - 1];
+    B_node* subtree = dst_node->child[dst_node->n_keys];
+    dst_node->n_keys -= 1;
+
+    swap(&key, &root->key[now_idx - 1]);
+    insert_key(root->child[now_idx]->key, 0, key, root->child[now_idx]->n_keys);
+    insert_subtree(root->child[now_idx]->child, subtree, 0, ++root->child[now_idx]->n_keys);
+}
+
+// Function for rotate of delete.
+// Perform rotation with the closest right sibling.
+void delete_rotate_with_right(B_node* root, int now_idx)
+{
+    B_node* now_node = root->child[now_idx];
+    int key = delete_key(root->child[now_idx + 1]->key, 0, root->child[now_idx + 1]->n_keys);
+    B_node* subtree = delete_subtree(root->child[now_idx + 1]->child, 0, root->child[now_idx + 1]->n_keys + 1);
+    root->child[now_idx + 1]->n_keys -= 1;
+
+    swap(&key, &root->key[now_idx]);
+    now_node->key[now_node->n_keys] = key;
+    now_node->child[++now_node->n_keys] = subtree;
+}
+
+// Merge root's left_idx-th child with the its closest right sibling.
+void merge(B_node* root, int left_idx)
+{
+    int center_key = delete_key(root->key, left_idx, root->n_keys);
+    B_node* left_node = root->child[left_idx];
+    B_node* right_node = root->child[left_idx + 1];
+    int left_n = left_node->n_keys;
+    int i;
+    for(i = right_node->n_keys; i > 0; --i) {
+        left_node->key[left_n + i] = right_node->key[i - 1];
+        left_node->child[left_n + i + 1] = right_node->child[i];
+    }
+    left_node->key[left_n] = center_key;
+    left_node->child[left_n + 1] = right_node->child[0];
+
+    left_node->n_keys += right_node->n_keys + 1;
+    free(delete_subtree(root->child, left_idx + 1, root->n_keys + 1));
+    root->n_keys -= 1;
+}
+
+// This function is internal function that is invoked by delete_to_B_node function.
+/* return a state value that
+    0 : underflow does not occur.
+    1 : underflow occurs.
+*/
+int delete(B_node* root, int value)
+{
+    int i;
+    for(i = 0; i < root->n_keys && root->key[i] < value; ++i);
+
+    // if target key is found
+    if(i < root->n_keys && root->key[i] == value) {
+        //if root is leaf node
+        if(root->child[0] == NULL) {
+            delete_key(root->key, i, root->n_keys--);
+            return root->n_keys < ceil(ORDER / 2.0) - 1; // return whether underflow occurs or not.
+        }
+        // root is non-leaf node.
+        root->key[i] = find_max(root->child[i]);
+        value = root->key[i];
+    }
+
+    int is_underflow = delete(root->child[i], value);
+    if(is_underflow) {
+        int rotatable = delete_rotation_test(root, i);
+        if(rotatable < 0) {
+            delete_rotate_with_left(root, i);
+            return 0;
+        } else if(rotatable > 0) {
+            delete_rotate_with_right(root, i);
+            return 0;
+        } else {
+            merge(root, (i > 0) ? (i - 1) : i);
+            return root->n_keys < ceil(ORDER / 2.0) - 1;
+        }
+    } else {
+        return 0;
+    }
+}
+
+// find the given key in given B-tree and delete it.
+// This function is external function that perform delete key of B-tree.
+B_node* delete_to_B_tree(B_node* root, int value)
+{
+    int is_underflow = delete(root, value);
+    if(is_underflow && root->child[0]) {
+        B_node* result = root->child[0];
+        free(root);
+        return result;
+    } else {
+        return root;
+    }
 }
