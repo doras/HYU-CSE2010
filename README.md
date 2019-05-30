@@ -16,3 +16,4 @@
 ### [lab09](./lab9/p9.c) : B-tree
 ### [lab10](./lab10/p10.c) : topological sort
 ### [lab11](./lab11/p11.c) : Dijkstra
+### [lab12](./lab12/p12.c) : Hash table
