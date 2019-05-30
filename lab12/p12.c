@@ -31,8 +31,8 @@ int main()
     HashTable* hash_table = NULL;
     int find_result;
 
-    FILE* input = fopen("/Users/doras/Desktop/shoon/HYU-assignment/2019_CSE2010_2018008659/lab12/input.txt", "r");
-    FILE* output = fopen("/Users/doras/Desktop/shoon/HYU-assignment/2019_CSE2010_2018008659/lab12/output.txt", "w");
+    FILE* input = fopen("input.txt", "r");
+    FILE* output = fopen("output.txt", "w");
 
     fscanf(input, "%d", &num_test_case);
     for(; num_test_case > 0; --num_test_case) {
@@ -84,6 +84,7 @@ int main()
             }
         }
         fprintf(output, "\n");
+        free_hash_table(hash_table);
     }
 
     fclose(input);
@@ -91,7 +92,7 @@ int main()
     return 0;
 }
 
-//
+// Allocate a hash table that has given information.
 HashTable* make_hash_table(int size, int (*hash_func)(HashTable*, int), int (*solution)(HashTable*, int, int))
 {
     HashTable* result = malloc(sizeof(HashTable));
@@ -108,7 +109,7 @@ HashTable* make_hash_table(int size, int (*hash_func)(HashTable*, int), int (*so
     return result;
 }
 
-//
+// Deallocate the given hash table
 void free_hash_table(HashTable* hash)
 {
     if(hash == NULL) {
@@ -118,7 +119,8 @@ void free_hash_table(HashTable* hash)
     free(hash);
 }
 
-//
+// Find the given value in given hash table.
+// if the value is found, return that index, else return -1
 int find(HashTable* hash, int value)
 {
     int i;
@@ -137,7 +139,7 @@ int find(HashTable* hash, int value)
     return hash->solution(hash, value, i);
 }
 
-//
+// print all values in given hash table
 void print_hash_table(HashTable* hash, FILE* output)
 {
     int i;
@@ -147,7 +149,8 @@ void print_hash_table(HashTable* hash, FILE* output)
     fprintf(output, "\n");
 }
 
-//
+// Insert the given value into given hash table.
+// if insertion is successful return 0, else return 1
 int insert(HashTable* hash, int value)
 {
     int i;
@@ -163,7 +166,8 @@ int insert(HashTable* hash, int value)
     return 1;
 }
 
-//
+// Delete the given value from given hash table.
+// if deletion is successful return 0, else return 1
 int delete(HashTable* hash, int value)
 {
     int idx = find(hash, value);
@@ -174,25 +178,28 @@ int delete(HashTable* hash, int value)
     return 0;
 }
 
-//
+// Hash function of simple modulo operation.
 int mod_hash_func(HashTable* this, int value)
 {
     return value % this->size;
 }
 
-//
+// Solution function for collision in hash table.
+// Linearly probe.
 int linear_sol(HashTable* this, int value, int i)
 {
     return (this->hash_func(this, value) + i) % this->size;
 }
 
-//
+// Solution function for collision in hash table.
+// Quadratically probe.
 int quadratic_sol(HashTable* this, int value, int i)
 {
     return (this->hash_func(this, value) + (i * i)) % this->size;
 }
 
-//
+// Solution function for collision in hash table.
+// Probe by double hash function.
 int double_sol(HashTable* this, int value, int i)
 {
     return (this->hash_func(this, value) + (i * (7 - (value % 7)))) % this->size;
