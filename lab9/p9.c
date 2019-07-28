@@ -101,7 +101,7 @@ void insert_key(int* arr, int index, int value, int len)
 // src와 dst 사이의 모든 sibling들은 key가 꽉 찬 상태임을 가정한다.
 void insert_rotate_with_left(B_node* root, int src, int difference, int value, B_node* subtree)
 {
-    int now_idx, i;
+    int now_idx;
     int key_temp;
     int dst = src - difference;
     B_node *temp_node_prt;
@@ -124,7 +124,7 @@ void insert_rotate_with_left(B_node* root, int src, int difference, int value, B
 // src와 dst 사이의 모든 sibling들은 key가 꽉 찬 상태임을 가정한다.
 void insert_rotate_with_right(B_node* root, int src, int difference, int value, B_node* subtree)
 {
-    int now_idx, i;
+    int now_idx;
     int key_temp;
     int dst = src + difference;
     B_node *temp_node_prt;
@@ -171,8 +171,8 @@ struct return_package insert(B_node *root, int key)
 
     returned_by_child = insert(root->child[i], key);
     if(returned_by_child.is_overflow) {
-        // rotatable = insert_rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
-        rotatable = 0;
+        rotatable = insert_rotation_test(root, i); // 주석 해제시, rotation이 적용됨.
+        // rotatable = 0;
 
         if(rotatable < 0) {
             insert_rotate_with_left(root, i, -rotatable, returned_by_child.overflowed_key, returned_by_child.overflowed_child);
