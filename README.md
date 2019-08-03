@@ -17,3 +17,5 @@
 ### [lab10](./lab10/p10.c) : topological sort
 ### [lab11](./lab11/p11.c) : Dijkstra
 ### [lab12](./lab12/p12.c) : Hash table
+### [lab13-1](./lab13/p13_1.c) : Merge sort
+### [lab13-2](./lab13/p13_2.c) : Quick sort
