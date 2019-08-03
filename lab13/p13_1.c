@@ -10,7 +10,7 @@ void _merge(int* arr, int* tmp_arr, int left, int right, int right_end);
 
 int main(int argc, char *argv[])
 {
-    FILE* input = fopen("input.txt", "r");
+    FILE* input = fopen("input1.txt", "r");
     FILE* output = fopen("output.txt", "w");
 
     int num_of_input;
@@ -55,7 +55,7 @@ int max(int a, int b)
     return (a >= b) ? a : b;
 }
 
-// Perform merge sort for given arr, leftmost and rightmost index is given left and right, respectively.
+// Perform merge sort for given arr recursively, leftmost and rightmost index is given left and right, respectively.
 // Given tmp_arr is used as temporary array for merge sort.
 void merge_sort_recursive(int* arr, int* tmp_arr, int left, int right)
 {
@@ -86,7 +86,8 @@ void merge_sort_recursive_with_log(FILE* output, int* arr, int* tmp_arr, int lef
     fprintf(output, "\n");
 }
 
-//
+// Perform merge sort for given arr iteratively, length of given array is given as an argument len.
+// Given tmp_arr is used as temporary array for merge sort.
 void merge_sort_iterative(int* arr, int* tmp_arr, int len)
 {
     int block_size;
@@ -101,7 +102,9 @@ void merge_sort_iterative(int* arr, int* tmp_arr, int len)
     }
 }
 
-//
+// Perform merge sort for given arr iteratively, length of given array is given as an argument len.
+// Given tmp_arr is used as temporary array for merge sort.
+// This function is exactly same as merge_sort_iterative except that it prints logs.
 void merge_sort_iterative_with_log(FILE* output, int* arr, int* tmp_arr, int len)
 {
     int block_size;
